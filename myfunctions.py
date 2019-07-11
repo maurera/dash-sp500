@@ -3,6 +3,14 @@ import numpy as np
 import statsmodels.api as sm
 import dash_html_components as html
 
+style_tr_underline = {
+    "border-bottom": "2px solid #c6d5e3",
+    "color": " darken(#c6d5e3, 25%)"
+}
+style_tr_noborder = {
+    "border-bottom": "none",
+}
+
 def sp500_estimate(df,Tk):
     # Reshape data
     dfw = df.pivot(index='Date', columns='Ticker', values='Close')[['SPY',Tk]]
@@ -51,17 +59,18 @@ def dash_regtable(modellist):
     S = []
     # Column titles
     row = [modellist[0].model.endog_names]+['('+str(i+1)+')' for i in range(N)]
-    S = S+[html.Tr([html.Th(x) for x in row])]
+    S = S+[html.Tr([html.Th(x) for x in row],style=style_tr_underline)]
 
     # Variables
-    for p in params:
+    for n,p in enumerate(params):
         row = [p]
         for i,pval in zip(betas.loc[p],pvalues.loc[p]):
             stars = '***' if pval < 0.01 else ('**' if pval < 0.05 else ('*' if pval < 0.1 else ''))
             row = row+['' if np.isnan(i) else '{0:.5f}'.format(i)+stars]
         S = S + [html.Tr([html.Td(x) for x in row])]
         row = [' ']+[('' if np.isnan(x) else '({0:.5f}'.format(x)+')') for x in se.loc[p]]
-        S = S + [html.Tr([html.Td(x) for x in row])]
+        rowstyle = {} if n<len(params)-1 else style_tr_underline # underline last standard error row
+        S = S + [html.Tr([html.Td(x) for x in row],style=rowstyle)]
 
     # Statistics
     stat_labels = ['Observation','Parameters','R-squared','Adj. R-squared']
@@ -72,6 +81,7 @@ def dash_regtable(modellist):
           d[i,j] = s
     for (j,lab),fmt in zip(enumerate(stat_labels),stat_formats):
         row = [lab]+[fmt.format(d[i,j]) for i,m in enumerate(modellist)]
-        S = S + [html.Tr([html.Td(x) for x in row])]
+        rowstyle = {} if j < len(stat_labels) - 1 else style_tr_underline  # underline last standard error row
+        S = S + [html.Tr([html.Td(x) for x in row],style=rowstyle)]
 
     return html.Table(S, className='three columns')
