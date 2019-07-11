@@ -1,10 +1,7 @@
 import pandas as pd
 import numpy as np
-import sys
 import statsmodels.api as sm
-import os
 import dash_html_components as html
-os.chdir('C:/Users/andrew.maurer/PycharmProjects/StressTestingWarmup')
 
 # Load and process data
 # Tk = 'BAC'
