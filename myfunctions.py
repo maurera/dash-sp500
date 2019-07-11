@@ -3,13 +3,6 @@ import numpy as np
 import statsmodels.api as sm
 import dash_html_components as html
 
-# Load and process data
-# Tk = 'BAC'
-# df = pd.read_pickle('Data/sp500_6stocks.pkl')
-# start = min(df[df.Ticker=='SPY']['Date'])
-# df["Return"] = df.groupby("Ticker")["Close"].pct_change(1)
-# df = df[df['Date']>=start]
-
 def sp500_estimate(df,Tk):
     # Reshape data
     dfw = df.pivot(index='Date', columns='Ticker', values='Close')[['SPY',Tk]]

@@ -23,18 +23,10 @@ table_header_style = {
     "textAlign": "center",
 }
 
-app = dash.Dash(__name__)
-
-server = app.server
-
-APP_PATH = str(pl.Path(__file__).parent.resolve())
-
-pkdata = pd.read_csv(os.path.join(APP_PATH, os.path.join("data", "pkdata.csv")))
-
 ##### Start #########
 # First time series
 Tk = 'BAC'
-df = pd.read_pickle('Data/sp500_6stocks.pkl')
+df = pd.read_pickle('data/sp500_6stocks.pkl')
 dfw = df.pivot(index='Date', columns='Ticker', values='Close') #[['SPY',Tk]]
 dfw.index = pd.to_datetime(dfw.index)
 dfw.dropna(inplace=True)
@@ -46,11 +38,11 @@ dfc = df.copy()
 start = min(dfc[dfc.Ticker=='SPY']['Date'])
 dfc["Return"] = dfc.groupby("Ticker")["Close"].pct_change(1)
 dfc = dfc[dfc['Date']>=start]
-# print(([sp500_estimate(df,Tk).summary()]))
 
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
+server = app.server
 
 app.layout = html.Div([
     html.Div([dcc.Dropdown(id="selected-value", multi=True, value=["SPY"],
@@ -104,10 +96,8 @@ def update_output_div(tickers):
     Tk = tickers[-1]
     if len(tickers)==1:
         return ''
-    model1 = sp500_estimate(dfc, Tk) #.summary() #.as_html()
+    model1 = sp500_estimate(dfc, Tk) 
     allmodels = [sp500_estimate(dfc, x) for x in tickers[1:]]
-    #return 'You entered ' + Tk + ' single. All: ' + ' '.join(tickers) + '"{}"'.format(4)
-    #return [dash_regtable([model1]),dash_regtable([model1])]
     return html.Div(className='row', children=[
         dash_regtable([m]) for m in allmodels
     ])
