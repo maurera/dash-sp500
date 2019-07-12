@@ -38,11 +38,11 @@ app.layout = html.Div([
                         options=[{"label":x,"value":x} for x in dfw.drop(columns=['SPY'])])],
           className="row", style={"display": "block", "width": "30%", "margin-left": "auto",
                                   "margin-right": "auto"}),
-    html.Div(className='row', children=[
-        html.Div(id='tabs',style={"width": "30%"}),
-        dcc.Graph(id='graph-timeseries',style={"width": "60%"})
-    ]),
-    # dcc.Graph(id='graph-timeseries'),
+    # html.Div(className='row', children=[
+    #     html.Div(id='tabs',style={"width": "30%"}),
+    #     dcc.Graph(id='graph-timeseries',style={"width": "60%"})
+    # ]),
+    dcc.Graph(id='graph-timeseries'),
     #dcc.Slider(id='year-slider',min=2000,max=2010,value=2000,marks={str(2003): str(2003)},step=None),
     html.H3(children='Model estimation'),
     html.Div(id='regtable-div')
@@ -52,14 +52,14 @@ app.layout = html.Div([
 ######################################
 ####### Tabs #########################
 ######################################
-@app.callback(Output('tabs', 'children'), [Input('selected-tickers', 'value')])
-def display_tabs(tickers):
-    alltabs = []
-    for t in tickers:
-        alltabs.append(
-            dcc.Tab(label=t, value=t)   #dcc.Tab(label='Tab {}'.format(i), value='tab-{}'.format(i))
-        )
-    return dcc.Tabs(alltabs)
+# @app.callback(Output('tabs', 'children'), [Input('selected-tickers', 'value')])
+# def display_tabs(tickers):
+#     alltabs = []
+#     for t in tickers:
+#         alltabs.append(
+#             dcc.Tab(label=t, value=t)   #dcc.Tab(label='Tab {}'.format(i), value='tab-{}'.format(i))
+#         )
+#     return dcc.Tabs(alltabs)
 
 
 ######################################
