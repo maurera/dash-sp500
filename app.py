@@ -41,7 +41,7 @@ app.layout = html.Div([
     html.Div(className='row', children=[
         html.Div(id='tabs',style={"width": "30%"}),
         dcc.Graph(id='graph-timeseries',style={"width": "60%"})
-    ]),
+    ], style={"display":"flex","flex-wrap":"wrap"}),
     # dcc.Graph(id='graph-timeseries'),
     #dcc.Slider(id='year-slider',min=2000,max=2010,value=2000,marks={str(2003): str(2003)},step=None),
     html.H3(children='Model estimation'),
