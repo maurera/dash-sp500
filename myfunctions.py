@@ -2,6 +2,10 @@ import pandas as pd
 import numpy as np
 import statsmodels.api as sm
 import dash_html_components as html
+from datetime import timedelta
+from datetime import datetime as dt
+def yearfrac_to_date(y):
+    return dt(int(y),1,1)+timedelta(days=(y%1)*365)
 
 style_tr_underline = {
     "border-bottom": "2px solid #c6d5e3",

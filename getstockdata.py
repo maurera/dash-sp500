@@ -7,18 +7,19 @@ class getstockdata:
     def readFile(self,file):
         # Read data from file
         df = pd.read_pickle(file)   # eg 'data/sp500_6stocks.pkl'
+        start = min(df[df.Ticker == 'SPY']['Date'])
 
         # Reshape wide dataset of stock prices
         dfw = df.pivot(index='Date', columns='Ticker', values='Close')  # [['SPY',Tk]]
         dfw.index = pd.to_datetime(dfw.index)
-        dfw.dropna(inplace=True)
+        dfw = dfw[dfw.index >= start]
+        #dfw.dropna(inplace=True) # this would drop MSFT if FB didn't exist
         for col in dfw.columns:
             dfw[col] = dfw[col] / dfw[col].dropna()[0] * 100
         self.dfw = dfw
 
         # Prepare return data
         dfr = df.copy()
-        start = min(dfr[dfr.Ticker == 'SPY']['Date'])
         dfr["Return"] = dfr.groupby("Ticker")["Close"].pct_change(1)
         dfr = dfr[dfr['Date'] >= start]
         self.dfr = dfr
@@ -39,3 +40,19 @@ class getstockdata:
 # dfCMTlagged.columns = [*dfCMT.columns,*['DGS'+str(x)+'L'+str(i) for i in [1,5,21] for x in [1,2,5,10]]]
 # dfCMTlagged.index = pd.to_datetime(dfCMTlagged.index)
 # print(dfCMTlagged.head())
+
+# Save big pickle
+# Bring in SPY
+# df6 = pd.read_pickle('data/sp500_6stocks.pkl')
+# df6 = df6[df6.Ticker=='SPY']
+# # Big pickle
+# path = 'C:/Users/andrew.maurer/PycharmProjects/StressTestingWarmup/Data/'
+# df = pd.read_pickle(path+'sp500data_merged.pkl')[['Ticker','Date','Adj Close']]
+# df.rename(columns={'Adj Close':'Close'},inplace=True)
+# start = min(df['Date'])
+# print(start)
+# df=df.append(df6,ignore_index=True)
+# df = df[df['Date']>=start]
+# df.dropna(inplace=True)
+# df.to_pickle('data/sp500_505stocks.pkl')
+# print(df6[df6.Ticker=='SPY'].head())
