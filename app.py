@@ -39,7 +39,8 @@ app.layout = html.Div([
           className="row", style={"display": "block", "width": "30%", "margin-left": "auto",
                                   "margin-right": "auto"}),
     html.Div(className='row', children=[
-        html.Div(id='tabs',style={"width": "30%"}),
+        html.Div([html.Div(dcc.Tabs(id='tabs',value='PEP')),
+        dcc.Graph(id='tabs-content',config={'displayModeBar': False})],style={"width": "30%"}),
         dcc.Graph(id='graph-timeseries',style={"width": "60%"})
     ], style={"display":"flex","flex-wrap":"wrap"}),
     # dcc.Graph(id='graph-timeseries'),
@@ -54,13 +55,22 @@ app.layout = html.Div([
 ######################################
 @app.callback(Output('tabs', 'children'), [Input('selected-tickers', 'value')])
 def display_tabs(tickers):
-    alltabs = []
-    for t in tickers:
-        alltabs.append(
-            dcc.Tab(label=t, value=t)   #dcc.Tab(label='Tab {}'.format(i), value='tab-{}'.format(i))
-        )
-    return dcc.Tabs(alltabs)
+    alltabs = [dcc.Tab(label=t, value=t) for t in tickers]
+    return alltabs
 
+@app.callback(Output('tabs-content', 'figure'),[Input('tabs', 'value')])
+def render_content(tab):
+    dfr_wide = dfr.pivot(index='Date', columns='Ticker', values='Return')[['SPY', tab]]
+    X = pd.DataFrame(dfr_wide['SPY'].dropna()).sort_values(by='SPY',axis=0)
+    X.insert(0, 'Intercept', 1)
+    yhat = sp500_estimate(dfr, tab).predict(X)
+    p1 = go.Scatter(x=dfr_wide['SPY'], y=dfr_wide[tab], text=tab, mode='markers')
+    p2 = go.Scatter(x=X['SPY'], y=yhat, text=tab, mode='lines')
+    return {
+        "data": [p1,p2],
+        "layout": go.Layout(showlegend=False,
+            margin=go.layout.Margin(l=0,r=0,b=50,t=50,pad=4))
+    }
 
 ######################################
 ####### Time series graph ############
@@ -70,25 +80,14 @@ def display_tabs(tickers):
     [Input('selected-tickers', 'value')]) # ,Input('year-slider', 'value')
 def update_figure(selected): #,selected_year
     selected = ['SPY',*selected]
-    traces = []
-    for i in selected:
-        print(i)
-        traces.append(go.Scatter(
-            x=dfw.index,
-            y=dfw[i],
-            text=i,
-            mode='lines',
-            name=i
-        ))
+    traces = [go.Scatter(x=dfw.index,y=dfw[i],text=i,mode='lines',name=i) for i in selected]
     return {
         'data': traces,
         'layout': go.Layout(
             xaxis={'title': 'Date'},
-            yaxis={'title': 'Normalized value'} #,
+            yaxis={'title': 'Normalized value'}
         )
     }
-
-
 
 ######################################
 ####### Model estimation table #######
