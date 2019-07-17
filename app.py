@@ -56,6 +56,7 @@ app.layout = html.Div([
     # dcc.Graph(id='graph-timeseries'),
     #dcc.Slider(id='year-slider',min=2000,max=2010,value=2000,marks={str(2003): str(2003)},step=None),
     html.H3(children='Model estimation'),
+    html.Div(id='graph-range'),
     html.Div(id='regtable-div')
 ], style={"width": "80%","margin-left": "auto","margin-right": "auto"})
 
@@ -86,7 +87,7 @@ def render_content(tab,daterange):
     return {
         "data": [p1,p2],
         "layout": go.Layout(showlegend=False,
-            margin=go.layout.Margin(l=0,r=0,b=50,t=50,pad=4))
+            margin=go.layout.Margin(l=50,r=30,b=50,t=50,pad=4))
     }
 
 ######################################
@@ -107,6 +108,16 @@ def update_figure(selected,daterange): #,selected_year
             yaxis={'title': 'Normalized value'}
         )
     }
+
+@app.callback(
+    Output('graph-range', 'children'),
+    [Input('graph-timeseries', 'relayoutData')])
+def get_figure_range(relayout_data):
+    if relayout_data==None: return None
+    range = [relayout_data.get('xaxis.range[0]'),relayout_data.get('xaxis.range[1]')]
+    if range[0]==None: return None
+    return range
+
 
 ######################################
 ####### Model estimation table #######
