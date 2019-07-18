@@ -2,8 +2,8 @@ import pandas as pd
 
 class getstockdata:
     def __init__(self, file):
-        # self.val = val
         self.readFile(file)
+
     def readFile(self,file):
         # Read data from file
         df = pd.read_pickle(file)   # eg 'data/sp500_6stocks.pkl'
@@ -22,7 +22,22 @@ class getstockdata:
         dfr = df.copy()
         dfr["Return"] = dfr.groupby("Ticker")["Close"].pct_change(1)
         dfr = dfr[dfr['Date'] >= start]
+        dfr = dfr.pivot(index='Date', columns='Ticker', values='Return')
+        dfr.index = pd.to_datetime(dfr.index)
         self.dfr = dfr
+
+        # Initialize X variables
+        X = dfr[['SPY']]
+        X.insert(0, 'Intercept', 1)
+        X['SPY Squared'] = X['SPY']**2
+        self.X = X.dropna()
+
+        # Trailing x-day return
+        # dflagreturn = pd.concat(
+        #     [dfw.pct_change(1).shift(), dfw.pct_change(5).shift(), dfw.pct_change(21).shift()], axis=1)
+        # dflagreturn.columns = ['Self_Trail1', 'Self_Trail5', 'Self_Trail21']
+        # dflagreturn.index = pd.to_datetime(dflagreturn.index)
+        # self.dfwL = dflagreturn
 
 
 # #########################

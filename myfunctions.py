@@ -15,28 +15,36 @@ style_tr_noborder = {
     "border-bottom": "none",
 }
 
-def sp500_estimate(df,Tk):
-    # Reshape data
-    dfw = df.pivot(index='Date', columns='Ticker', values='Close')[['SPY',Tk]]
-    dfr = df.pivot(index='Date', columns='Ticker', values='Return')[['SPY',Tk]] # Reshape long to wide
-    dfr.index = pd.to_datetime(dfr.index)
-    dfr = dfr.dropna()
-    X = pd.DataFrame(dfr['SPY'].dropna())
-    Y = dfr[[Tk]].dropna()
-    Y = pd.Series(dfr[Tk].dropna())
-    X.insert(0, 'Intercept', 1)
+# def modelwrap(X,Y,xvars):
+#     # Intersect X and Y
+#     intersect = Y.index.intersection(X.index)
+#     Y = Y[intersect]
+#     X = X.loc[intersect]
 
-    # Different models
-    model1 = sm.OLS(Y, X)
-    results1 = model1.fit()
+def getgrid(X,n=50):
+    grid = pd.DataFrame(columns=X.columns)
+    grid['SPY'] = [min(X['SPY'])+ x*(max(X['SPY'])-min(X['SPY']))/n for x in range(n)] # numpy use: np.linspace(min(X['SPY']), max(X['SPY']), 50)
+    grid['Intercept'] = 1
+    if 'SPY Squared' in X.columns:
+        grid['SPY Squared'] = grid['SPY']**2
+    return grid
+
+
+def sp500_estimate(stockdata,Tk,addvars=[]):
+
+    # Y data must be a pd Series
+    Y = pd.Series(stockdata.dfr[Tk].dropna())
 
     # Trailing x-day return
-    dflagreturn = pd.concat([dfw[Tk].pct_change(1).shift(),dfw[Tk].pct_change(5).shift(),dfw[Tk].pct_change(21).shift()],axis=1)
-    dflagreturn.columns = ['Self_Trail1','Self_Trail5','Self_Trail21']
-    dflagreturn.index = pd.to_datetime(dflagreturn.index)
+    # dflagreturn = pd.concat([dfw[Tk].pct_change(1).shift(),dfw[Tk].pct_change(5).shift(),dfw[Tk].pct_change(21).shift()],axis=1)
+    # dflagreturn.columns = ['Self_Trail1','Self_Trail5','Self_Trail21']
+    # dflagreturn.index = pd.to_datetime(dflagreturn.index)
+
+    X = stockdata.X
 
     # Concatenate X variables
-    X = pd.concat([X,dflagreturn],axis=1).dropna()
+    #X = pd.concat([X,Xsq,dflagreturn],axis=1).dropna()
+    #X = pd.concat([X, dflagreturn], axis=1).dropna()
 
     # Intersect X and Y
     intersect = Y.index.intersection(X.index)
@@ -44,9 +52,16 @@ def sp500_estimate(df,Tk):
     X = X.loc[intersect]
 
     # Model 1 - Intercept/SPY
-    vars = ['Intercept','SPY']
+    vars = ['Intercept','SPY']+addvars
     model1 = sm.OLS(Y, X[vars])
     results1 = model1.fit()
+
+    # # Model 2 - X-squared
+    # vars = ['Intercept', 'SPY', 'SPYSquared']
+    # model2 = sm.OLS(Y, X[vars])
+    # results2 = model2.fit()
+
+    #return [results1,results1]
     return results1
 
 # Run model eg
